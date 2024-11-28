@@ -21,7 +21,17 @@ public class CompletableFutureDemo {
      * @param args
      */
     public static void main(String[] args) {
-        m4();
+
+    }
+
+    private static void m5() throws InterruptedException, ExecutionException {
+        CompletableFuture<Integer> completableFuture = CompletableFuture.supplyAsync(() -> {
+            return 1;
+        });
+        // 无需抛出异常
+        System.out.println(completableFuture.join());
+        // 需要抛出异常
+        System.out.println(completableFuture.get());
     }
 
     private static void m4() {
