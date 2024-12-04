@@ -1,4 +1,4 @@
-package com.cyy.lock;
+package com.cyy.foundation.lock;
 
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;

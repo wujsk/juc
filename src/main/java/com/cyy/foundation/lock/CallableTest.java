@@ -1,4 +1,4 @@
-package com.cyy.lock;
+package com.cyy.foundation.lock;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;

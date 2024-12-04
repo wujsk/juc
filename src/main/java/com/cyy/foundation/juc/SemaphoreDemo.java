@@ -1,4 +1,4 @@
-package com.cyy.juc;
+package com.cyy.foundation.juc;
 
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
