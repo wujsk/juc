@@ -1,4 +1,4 @@
-package com.cyy.pool;
+package com.cyy.foundation.pool;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

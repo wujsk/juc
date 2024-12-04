@@ -1,4 +1,4 @@
-package com.cyy.pool;
+package com.cyy.foundation.pool;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;

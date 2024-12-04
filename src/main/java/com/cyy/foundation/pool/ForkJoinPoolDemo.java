@@ -1,4 +1,4 @@
-package com.cyy.pool;
+package com.cyy.foundation.pool;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
