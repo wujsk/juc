@@ -1,4 +1,4 @@
-package com.cyy.future;
+package com.cyy.advanced.completableFuture;
 
 import java.util.concurrent.*;
 
@@ -36,8 +36,8 @@ public class FutureDemo {
      * 如何解决缺点呢？利用异步回调 此时推出CompletableFuture以声明式处理
      * @param args
      */
-    public static void main(String[] args) {
-
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+        m2();
     }
 
     // 未获得m2的返回值 m1耗时：6013（毫秒）  m2耗时：1（毫秒）

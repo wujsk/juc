@@ -1,4 +1,4 @@
-package com.cyy.future;
+package com.cyy.advanced.completableFuture;
 
 import java.util.Objects;
 import java.util.Random;
@@ -83,7 +83,7 @@ public class CompletableFutureDemo {
     private static void m3() {
         /**
          * main先去忙其他的去了
-         * ForkJoinPool.commonPool-worker-1---come in
+         // * ForkJoinPool.commonPool-worker-1---come in
          * ForkJoinPool.commonPool-worker-1
          * 1
          * 可以发现采用异步回调的方式
