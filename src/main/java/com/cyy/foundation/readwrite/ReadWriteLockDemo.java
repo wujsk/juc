@@ -1,4 +1,4 @@
-package com.cyy.readwrite;
+package com.cyy.foundation.readwrite;
 
 import java.util.HashMap;
 import java.util.Map;
