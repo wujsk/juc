@@ -3,7 +3,7 @@ package com.cyy.advanced.lock;
 
 /**
  * @program: juc
- * @description:
+ * @description: ObjectMonitor
  * @author: cyy
  * @create: 2024-12-11 15:53
  **/
