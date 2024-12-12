@@ -15,6 +15,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public class LockSupportDemo {
     public static void main(String[] args) {
         /**
+         * 总的一句话，他很好用，但是他是Unsafe，也就是说他所申请的内存，不会被回收，如果不太了解Unsafe类，无疑之中给自己埋了一个坑
+         *
          * 用来创建锁和其他同步类的基本线程阻塞原语。
          *
          * 此类以及每个使用它的线程与一个许可关联（从 Semaphore 类的意义上说）。如果该许可可用，并且可在进程中使用，则调用 park 将立即返回；
