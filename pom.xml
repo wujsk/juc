@@ -20,5 +20,12 @@
             <artifactId>lombok</artifactId>
             <version>1.18.36</version>
         </dependency>
+
+        <!--分析对象在JVM中的大小和布局-->
+        <dependency>
+            <groupId>org.openjdk.jol</groupId>
+            <artifactId>jol-core</artifactId>
+            <version>0.16</version>
+        </dependency>
     </dependencies>
 </project>
