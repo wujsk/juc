@@ -510,6 +510,145 @@ public class LockClearUpDemo {
 
   ![image-20250108210737298](.\assert\image-20250108210737298.png)
 
-  
+### 2.AQS之为什么是JUC基础框架
+
+- 进一步理解锁和同步器的关系
+  - **锁是面向锁的使用者**
+  - **同步器是面向锁的实现者**
+    - Java并发大神DougLee，提出统一规范并简化了锁的实现，**将其抽象出来**屏蔽了同步状态管理、同步队列的管理和维护、阻塞线程排队和通知、唤醒机制等，是一切锁和同步组件实现的--------**公共基础部分**
+
+### 3.能干吗
+
+- 加锁会导致阻塞·
+- 解释说明
+  - 抢到资源的线程直接使用处理业冬，抢不到资源的必然涉及一种**排队等候机制**。抢占资源失败的线程继续去等待(类似银行业务办理窗口都满了，暂时没有受理窗口的顾客只能去**候客区排队等候**)，但等候线程仍然保留获取锁的可能且获取锁流程仍在继续(候客区的顾客也在等着叫号，轮到了再去受理窗口办理业务)。
+  - 既然说到了**排队等候机制**，那么就一定会有某种队列形成，这样的队列是什么数据结构呢?
+  - 如果共享资源被占用，**就需要一定的阻塞等待唤醒机制来保证锁分配**。这个机制主要用的是CLH队列的变体实现的，将暂时获取不到锁的线程加入到队列中，这个队列就是AQS同步队列的抽象表现。它将要请求共享资源的线程及自身的等待状态封装成队列的结点对象（**Node**)，通过CAS、自旋以及LockSupport.park()的方式，维护state变量的状态，使并发达到同步的效果。
+- 源码说明
+  - AQS使用一个volatle的int类型的成员变量来表示同步状态。通过内置的FIFO队列来完成资源获取的排队工作将每条要去抢占资源的线程封装成一个Node节点来实现锁的分配，通过CAS完成对State值的修改。
+- ![image-20250109174211534](.\assert\image-20250109174211534.png)
+
+### 4.AQS前置知识
+
+![image-20250109174516591](.\assert\image-20250109174516591.png)
+
+#### 4.1AQS体系内部架构
+
+- AQS自身
+
+  - AQS的int变量
+    - AQS的同步状态State成员变量
+    - 银行办理业务的受理窗口状态
+      - 零就是没人，自由状态可以办理
+      - 大于等于1，有人占用窗口，等着去
+  - AQS的CLH队列
+    - ![image-20250109175110773](.\assert\image-20250109175110773.png)
+    - CLH队列（三个大佬名字组成），为一个双向链表。
+    - 银行候客区的等待顾客
+  - 小总结
+    - 有阻塞就需要排队，实现排队必然需要队列
+    - state变量+CLH双端队列
+
+- 内部类Node（Node类在AQS类内部）
+
+  - Node的int变量
+
+    - Node的等待状态（jdk8是waitState jdk17是status）成员变量
+    - 说人话
+      - 等候区其他顾客（其他线程）的等待状态
+      - 队列中每个排队的个体就是一个Node
+
+  - Node的内部结构（jdk17）
+
+    - ```java
+      // Node status bits, also used as argument and return values
+      static final int WAITING   = 1;          // must be 1
+      static final int CANCELLED = 0x80000000; // must be negative
+      static final int COND      = 2;          // in a condition wait
+      
+      abstract static class Node {
+          volatile Node prev;       // initially attached via casTail
+          volatile Node next;       // visibly nonnull when signallable
+          Thread waiter;            // visibly nonnull when enqueued
+          volatile int status;      // written by owner, atomic bit ops by others
+      
+          // methods for atomic operations
+          final boolean casPrev(Node c, Node v) {  // for cleanQueue
+              return U.weakCompareAndSetReference(this, PREV, c, v);
+          }
+          final boolean casNext(Node c, Node v) {  // for cleanQueue
+              return U.weakCompareAndSetReference(this, NEXT, c, v);
+          }
+          final int getAndUnsetStatus(int v) {     // for signalling
+              return U.getAndBitwiseAndInt(this, STATUS, ~v);
+          }
+          final void setPrevRelaxed(Node p) {      // for off-queue assignment
+              U.putReference(this, PREV, p);
+          }
+          final void setStatusRelaxed(int s) {     // for off-queue assignment
+              U.putInt(this, STATUS, s);
+          }
+          final void clearStatus() {               // for reducing unneeded signals
+              U.putIntOpaque(this, STATUS, 0);
+          }
+      
+          private static final long STATUS
+              = U.objectFieldOffset(Node.class, "status");
+          private static final long NEXT
+              = U.objectFieldOffset(Node.class, "next");
+          private static final long PREV
+              = U.objectFieldOffset(Node.class, "prev");
+      }
+      ```
+
+      JDK8中Node的属性说明
+
+      ![image-20250109180340786](.\assert\image-20250109180340786.png)
+
+- AQS源码的深度讲解
+
+  - Lock接口的实现类，基本都是通过【聚合】了一个【队列同步器】的子类完成线程访问控制的。
+
+  - ReentrantLockd的原理
+
+    ![image-20250109180927772](.\assert\image-20250109180927772.png)
+
+  - 公平锁源码和非公平锁源码比较
+
+    ```Java
+    // 非公平
+    protected final boolean tryAcquire(int acquires) {
+        if (getState() == 0 && compareAndSetState(0, acquires)) {
+            setExclusiveOwnerThread(Thread.currentThread());
+            return true;
+        }
+        return false;
+    }
+    // 公平
+    protected final boolean tryAcquire(int acquires) {
+        if (getState() == 0 && !hasQueuedPredecessors() &&
+            compareAndSetState(0, acquires)) {
+            setExclusiveOwnerThread(Thread.currentThread());
+            return true;
+        }
+        return false;
+    }
+    ```
+
+    可以明显看出公平锁与非公平锁的lock()方法唯一的区别就在于公平锁在获取同步状态时多了一个限制条件:
+    **hasQueuedPredecessors()**
+    **hasQueuedPredecessors是公平锁加锁时判断等待队列中是否存在有效节点的方法**
+
+  - 以非公平锁ReentranLock()为例作为突破走起，方法lock()
+
+    - **hasQueuedPredecessors()中判断了是否需要排队**，导致公平锁和非公平锁的差异如下，
+
+    - **公平锁:公平锁讲究先来先到**，线程在获取锁时，如果这个锁的等待队列中已经有线程在等待，那么当前线程就会进入等待队列中;
+
+    - **非公平锁:不管是否有等待队列，如果可以获取锁，则立刻占有锁对象**。也就是说队列的第一个排队线程苏醒后，不一定就是排头的这个线程获得锁，它还是需要参加竞争锁（存在线程竞争的情况下)，后来的线程可能不讲武德插队夺锁了。
+
+      ![image-20250109195616964](.\assert\image-20250109195616964.png)
+
+    - 
 
 ## 五、ReentrantLock、ReentrantReadWriteLock、StampedLock讲解
